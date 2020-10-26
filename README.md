@@ -11,6 +11,7 @@
 - mv executable file to mount/root/test
 
 ## To Do
+Check /kernel/sched/rt.c , /kernel/sched/fair.c
 
 ### Implement syscalls (/kernel/sched/core.c)
 - sched_setweight
