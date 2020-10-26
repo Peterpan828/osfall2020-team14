@@ -14,6 +14,7 @@
 Check /kernel/sched/rt.c , /kernel/sched/fair.c
 
 ### Implement syscalls (/kernel/sched/core.c)
+- Line 6760
 - sched_setweight
 - sched_getweight
 
