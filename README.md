@@ -29,6 +29,7 @@
 
 ### Implement test Program (/test)
 - trial.c
+- System call sched_setscheduler
 - dummy process? (Compete with workload)
 
 ### Implement Load balancing
