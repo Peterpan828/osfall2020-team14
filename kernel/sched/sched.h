@@ -270,6 +270,7 @@ extern bool dl_cpu_busy(unsigned int cpu);
 
 struct cfs_rq;
 struct rt_rq;
+struct wrr_rq;
 
 extern struct list_head task_groups;
 
@@ -315,6 +316,8 @@ struct task_group {
 #ifdef CONFIG_RT_GROUP_SCHED
 	struct sched_rt_entity **rt_se;
 	struct rt_rq **rt_rq;
+	struct sched_wrr_entity **wrr_se;
+	struct wrr_rq **wrr_rq;
 
 	struct rt_bandwidth rt_bandwidth;
 #endif
@@ -505,6 +508,10 @@ static inline int rt_bandwidth_enabled(void)
 #if defined(CONFIG_IRQ_WORK) && defined(CONFIG_SMP)
 # define HAVE_RT_PUSH_IPI
 #endif
+
+struct wrr_rq {
+	int weight_sum;
+};
 
 /* Real-Time classes' related field in a runqueue: */
 struct rt_rq {
@@ -708,6 +715,7 @@ struct rq {
 	struct cfs_rq cfs;
 	struct rt_rq rt;
 	struct dl_rq dl;
+	struct wrr_rq wrr;
 
 #ifdef CONFIG_FAIR_GROUP_SCHED
 	/* list of leaf cfs_rq on this cpu: */
@@ -1496,6 +1504,7 @@ extern const struct sched_class dl_sched_class;
 extern const struct sched_class rt_sched_class;
 extern const struct sched_class fair_sched_class;
 extern const struct sched_class idle_sched_class;
+extern const struct sched_class wrr_sched_class;
 
 
 #ifdef CONFIG_SMP
