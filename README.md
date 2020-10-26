@@ -11,8 +11,14 @@
 - mv executable file to mount/root/test
 
 ## To Do
+
 ### Implement syscalls (/kernel/sched/core.c)
+- sched_setweight
+- sched_getweight
+
 ### Implement wrr_sched_class (/kernel/sched/wrr.c)
+- Implement functions (enqueue, dequeue, ...)
+
 ### Implement sched_wrr_entity (/include/linux/sched.h)
 - Field of struct task_struct
 - line 474
