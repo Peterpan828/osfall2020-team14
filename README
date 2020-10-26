@@ -1,18 +1,13 @@
-Linux kernel
-============
+# Project 2 : Weighted Round-Robin Scheduler
+-team 14
+-Due: 2020-11-05 Thursday 17:00:00
 
-This file was moved to Documentation/admin-guide/README.rst
+## Overview
 
-Please notice that there are several guides for kernel developers and users.
-These guides can be rendered in a number of formats, like HTML and PDF.
 
-In order to build the documentation, use ``make htmldocs`` or
-``make pdfdocs``.
+## To Do
+-Implement syscalls(sched_getweight, sched_setweight)(kernel/sched/core.c)
+-Implement wrr_sched_class(kernel/sched/wrr.c) 
+-Implement Load balancing
 
-There are various text files in the Documentation/ subdirectory,
-several of them using the Restructured Text markup notation.
-See Documentation/00-INDEX for a list of what is contained in each file.
 
-Please read the Documentation/process/changes.rst file, as it contains the
-requirements for building and running the kernel, and information about
-the problems which may result by upgrading your kernel.
