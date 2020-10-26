@@ -30,7 +30,8 @@ Check /kernel/sched/rt.c , /kernel/sched/fair.c
 
 ### Implement test Program (/test)
 - trial.c
-- System call sched_setscheduler
+- System call sched_setscheduler (Should support WRR)
+- sched_setscheduler (/kernel/sched/core.c)
 - dummy process? (Compete with workload)
 
 ### Implement Load balancing
