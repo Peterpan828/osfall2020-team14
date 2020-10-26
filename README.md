@@ -2,6 +2,14 @@
 - Team 14
 - Due: 2020-11-05 Thursday 17:00:00
 
+## Build kernel
+- sudo ./proj2.sh
+
+## Build Test
+- cd test
+- make all
+- mount, copy exe to mount/root/test
+
 ## To Do
 ### Implement syscalls (/kernel/sched/core.c)
 ### Implement wrr_sched_class (/kernel/sched/wrr.c)
