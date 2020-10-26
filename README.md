@@ -33,7 +33,7 @@ Check /kernel/sched/rt.c , /kernel/sched/fair.c
 - trial.c
 - System call sched_setscheduler (Should support WRR)
 - sched_setscheduler (/kernel/sched/core.c)
-- dummy process? (Compete with workload)
+- dummy process? (Compete with our workload)
 
 ### Implement Load balancing
 ...
