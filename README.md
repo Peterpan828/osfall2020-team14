@@ -8,7 +8,7 @@
 ## Build Test
 - cd test
 - make all
-- mount, copy exe to mount/root/test
+- mv executable file to mount/root/test
 
 ## To Do
 ### Implement syscalls (/kernel/sched/core.c)
