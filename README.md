@@ -7,8 +7,7 @@
 
 ## Build Test
 - cd test
-- make all
-- mv executable file to mount/root/test
+- sudo ./test.sh
 
 ## To Do
 Check /kernel/sched/rt.c , /kernel/sched/fair.c
