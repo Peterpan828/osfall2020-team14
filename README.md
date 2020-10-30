@@ -28,6 +28,7 @@ Check /kernel/sched/rt.c , /kernel/sched/fair.c
 ### Implement wrr_rq (/kernel/sched/sched.h)
 - Field of struct rq
 - line 512
+- Fixed valid_policy function for WRR
 
 ### Implement test Program (/test)
 - trial.c
