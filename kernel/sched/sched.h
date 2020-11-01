@@ -1,4 +1,6 @@
 /* SPDX-License-Identifier: GPL-2.0 */
+#ifndef __SCHED_H__
+#define __SCHED_H__
 
 #include <linux/sched.h>
 #include <linux/sched/autogroup.h>
@@ -322,8 +324,6 @@ struct task_group {
 #ifdef CONFIG_RT_GROUP_SCHED
 	struct sched_rt_entity **rt_se;
 	struct rt_rq **rt_rq;
-	struct sched_wrr_entity **wrr_se;
-	struct wrr_rq **wrr_rq;
 
 	struct rt_bandwidth rt_bandwidth;
 #endif
@@ -515,8 +515,11 @@ static inline int rt_bandwidth_enabled(void)
 # define HAVE_RT_PUSH_IPI
 #endif
 
+//proj2(WRR)
 struct wrr_rq {
 	int weight_sum;
+	int nr_queue;
+	struct list_head rq_head;
 };
 
 /* Real-Time classes' related field in a runqueue: */
@@ -1999,6 +2002,7 @@ print_numa_stats(struct seq_file *m, int node, unsigned long tsf,
 extern void init_cfs_rq(struct cfs_rq *cfs_rq);
 extern void init_rt_rq(struct rt_rq *rt_rq);
 extern void init_dl_rq(struct dl_rq *dl_rq);
+extern void init_wrr_rq(struct wrr_rq *wrr_rq);
 
 extern void cfs_bandwidth_usage_inc(void);
 extern void cfs_bandwidth_usage_dec(void);
@@ -2117,4 +2121,6 @@ static inline void cpufreq_update_util(struct rq *rq, unsigned int flags) {}
 #endif
 #else /* arch_scale_freq_capacity */
 #define arch_scale_freq_invariant()	(false)
+#endif
+
 #endif

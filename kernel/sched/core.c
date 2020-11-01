@@ -40,6 +40,17 @@
 #define CREATE_TRACE_POINTS
 #include <trace/events/sched.h>
 
+
+// init function (core.c)
+void init_wrr_rq(struct wrr_rq *wrr_rq)
+{       
+        //Init Run Queue of WRR
+        INIT_LIST_HEAD(&wrr_rq->rq_head);
+        wrr_rq -> nr_queue = 0;
+        wrr_rq -> weight_sum = 0;
+}
+
+
 DEFINE_PER_CPU_SHARED_ALIGNED(struct rq, runqueues);
 
 /*
@@ -3981,7 +3992,11 @@ static void __setscheduler(struct rq *rq, struct task_struct *p,
 	if (keep_boost)
 		p->prio = rt_effective_prio(p, p->prio);
 
-	if (dl_prio(p->prio))
+	// proj2(wrr)
+	if (p -> policy == SCHED_WRR)
+		p -> sched_class = &wrr_sched_class;
+
+	else if (dl_prio(p->prio))
 		p->sched_class = &dl_sched_class;
 	else if (rt_prio(p->prio))
 		p->sched_class = &rt_sched_class;
@@ -4113,6 +4128,7 @@ recheck:
 	 * To be able to change p->policy safely, the appropriate
 	 * runqueue lock must be held.
 	 */
+
 	rq = task_rq_lock(p, &rf);
 	update_rq_clock(rq);
 
@@ -4225,15 +4241,19 @@ change:
 			queue_flags |= ENQUEUE_HEAD;
 
 		enqueue_task(rq, p, queue_flags);
+		printk(KERN_INFO "Inside __set_schedule_7");
 	}
 	if (running)
 		set_curr_task(rq, p);
 
+	printk(KERN_INFO "Inside __set_schedule_8");
 	check_class_changed(rq, p, prev_class, oldprio);
+	
 
 	/* Avoid rq from going away on us: */
 	preempt_disable();
 	task_rq_unlock(rq, p, &rf);
+	printk(KERN_INFO "Inside __set_schedule_9");
 
 	if (pi)
 		rt_mutex_adjust_pi(p);
@@ -5865,6 +5885,8 @@ void __init sched_init(void)
 		init_cfs_rq(&rq->cfs);
 		init_rt_rq(&rq->rt);
 		init_dl_rq(&rq->dl);
+		//proj2(wrr)
+		init_wrr_rq(&rq->wrr);
 #ifdef CONFIG_FAIR_GROUP_SCHED
 		root_task_group.shares = ROOT_TASK_GROUP_LOAD;
 		INIT_LIST_HEAD(&rq->leaf_cfs_rq_list);

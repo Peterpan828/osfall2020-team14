@@ -475,6 +475,7 @@ struct sched_wrr_entity
 {
 	int weight;
 	int time_slice;
+	struct list_head run_list;
 };
 
 struct sched_dl_entity {
