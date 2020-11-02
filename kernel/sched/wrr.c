@@ -64,7 +64,21 @@ static unsigned int get_rr_interval_wrr(struct rq *rq, struct task_struct *p)
 {
 }
 
+static void set_curr_task_wrr(struct rq *rq)
+{
+	//printk(KERN_INFO "set_curr_task called");
+}
 
+
+static void switched_from_wrr(struct rq *rq, struct task_struct *p)
+{
+	// Prevent Error
+}
+
+static void switched_to_wrr(struct rq *rq, struct task_struct *p)
+{
+	// Prevent Error
+}
 
 // Declared in kernel/sched/sched.h
 const struct sched_class wrr_sched_class = {
@@ -72,6 +86,9 @@ const struct sched_class wrr_sched_class = {
         .enqueue_task           = enqueue_task_wrr,
         .dequeue_task           = dequeue_task_wrr,
         .pick_next_task         = pick_next_task_wrr,
+	.set_curr_task		= set_curr_task_wrr,
+	.switched_from		= switched_from_wrr,
+	.switched_to		= switched_to_wrr,
 
 #ifdef CONFIG_SMP
         .select_task_rq         = select_task_rq_wrr,

@@ -4241,19 +4241,15 @@ change:
 			queue_flags |= ENQUEUE_HEAD;
 
 		enqueue_task(rq, p, queue_flags);
-		printk(KERN_INFO "Inside __set_schedule_7");
 	}
 	if (running)
 		set_curr_task(rq, p);
 
-	printk(KERN_INFO "Inside __set_schedule_8");
 	check_class_changed(rq, p, prev_class, oldprio);
 	
-
 	/* Avoid rq from going away on us: */
 	preempt_disable();
 	task_rq_unlock(rq, p, &rf);
-	printk(KERN_INFO "Inside __set_schedule_9");
 
 	if (pi)
 		rt_mutex_adjust_pi(p);
