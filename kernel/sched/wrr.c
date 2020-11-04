@@ -66,6 +66,9 @@ static struct task_struct *pick_next_task_wrr(struct rq *rq, struct task_struct 
 
 static DEFINE_PER_CPU(cpumask_var_t, local_cpu_mask);
 
+
+
+#ifdef CONFIG_SMP
 static int find_lowest_rq(struct task_struct *task)
 {
         struct sched_domain *sd;
@@ -163,6 +166,16 @@ static int select_task_rq_wrr(struct task_struct *p, int cpu, int sd_flag, int f
 	return cpu;
 }
 
+static void rq_online_wrr(struct rq *rq)
+{
+
+}
+
+static void rq_offline_wrr(struct rq *rq)
+{
+
+}
+#endif
 
 static void task_tick_wrr(struct rq *rq, struct task_struct *task, int queued)
 {
@@ -193,11 +206,25 @@ static unsigned int get_rr_interval_wrr(struct rq *rq, struct task_struct *p)
 	return msecs_to_jiffies(wrr_en->weight *10);
 }
 
+static void yield_task_wrr(struct rq *rq)
+{
+
+}
+
+static void check_preempt_curr_wrr(struct rq *rq, struct task_struct *p, int flags)
+{
+
+}
+
 static void set_curr_task_wrr(struct rq *rq)
 {
 	//printk(KERN_INFO "set_curr_task called");
 }
 
+static void put_prev_task_wrr(struct rq *rq, struct task_struct *prev)
+{
+
+}
 
 static void switched_from_wrr(struct rq *rq, struct task_struct *p)
 {
@@ -215,12 +242,17 @@ const struct sched_class wrr_sched_class = {
         .enqueue_task           = enqueue_task_wrr,
         .dequeue_task           = dequeue_task_wrr,
         .pick_next_task         = pick_next_task_wrr,
+	.yield_task		= yield_task_wrr,
+	.check_preempt_curr	= check_preempt_curr_wrr,
 	.set_curr_task		= set_curr_task_wrr,
+	.put_prev_task		= put_prev_task_wrr,
 	.switched_from		= switched_from_wrr,
 	.switched_to		= switched_to_wrr,
 
 #ifdef CONFIG_SMP
         .select_task_rq         = select_task_rq_wrr,
+	.rq_online		= rq_online_wrr,
+	.rq_offline		= rq_offline_wrr,
 #endif
 
         .task_tick              = task_tick_wrr,
