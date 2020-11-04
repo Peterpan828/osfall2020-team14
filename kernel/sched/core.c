@@ -2378,10 +2378,12 @@ int sched_fork(unsigned long clone_flags, struct task_struct *p)
 	 * Revert to default priority/policy on fork if requested.
 	 */
 	if (unlikely(p->sched_reset_on_fork)) {
+		if (p->policy != SCHED_WRR){
 		if (task_has_dl_policy(p) || task_has_rt_policy(p)) {
 			p->policy = SCHED_NORMAL;
 			p->static_prio = NICE_TO_PRIO(0);
 			p->rt_priority = 0;
+		}
 		} else if (PRIO_TO_NICE(p->static_prio) < 0)
 			p->static_prio = NICE_TO_PRIO(0);
 
@@ -2393,12 +2395,21 @@ int sched_fork(unsigned long clone_flags, struct task_struct *p)
 		 * fulfilled its duty:
 		 */
 		p->sched_reset_on_fork = 0;
+
+		if (p->policy == SCHED_WRR){
+			 p->wrr.weight = 10;
+		}
 	}
 
-	if (dl_prio(p->prio)) {
+
+	if (p->policy == SCHED_WRR){
+		p->sched_class = &wrr_sched_class;
+	}	
+	else if (dl_prio(p->prio)) {
 		put_cpu();
 		return -EAGAIN;
-	} else if (rt_prio(p->prio)) {
+	} 
+	  else if (rt_prio(p->prio)) {
 		p->sched_class = &rt_sched_class;
 	} else {
 		p->sched_class = &fair_sched_class;
@@ -3739,6 +3750,7 @@ void rt_mutex_setprio(struct task_struct *p, struct task_struct *pi_task)
 	 *      --> -dl task blocks on mutex A and could preempt the
 	 *          running task
 	 */
+	if (p->policy != SCHED_WRR){
 	if (dl_prio(prio)) {
 		if (!dl_prio(p->normal_prio) ||
 		    (pi_task && dl_entity_preempt(&pi_task->dl, &p->dl))) {
@@ -3759,6 +3771,7 @@ void rt_mutex_setprio(struct task_struct *p, struct task_struct *pi_task)
 		if (rt_prio(oldprio))
 			p->rt.timeout = 0;
 		p->sched_class = &fair_sched_class;
+	}
 	}
 
 	p->prio = prio;
@@ -3806,7 +3819,7 @@ void set_user_nice(struct task_struct *p, long nice)
 	 * it wont have any effect on scheduling until the task is
 	 * SCHED_DEADLINE, SCHED_FIFO or SCHED_RR:
 	 */
-	if (task_has_dl_policy(p) || task_has_rt_policy(p)) {
+	if (task_has_dl_policy(p) || task_has_rt_policy(p) || p->policy==SCHED_WRR) {
 		p->static_prio = NICE_TO_PRIO(nice);
 		goto out_unlock;
 	}
@@ -3993,8 +4006,9 @@ static void __setscheduler(struct rq *rq, struct task_struct *p,
 		p->prio = rt_effective_prio(p, p->prio);
 
 	// proj2(wrr)
-	if (p -> policy == SCHED_WRR)
+	if (p -> policy == SCHED_WRR){
 		p -> sched_class = &wrr_sched_class;
+		p -> wrr.weight = 10;}
 
 	else if (dl_prio(p->prio))
 		p->sched_class = &dl_sched_class;
