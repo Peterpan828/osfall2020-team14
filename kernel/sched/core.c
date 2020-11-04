@@ -6791,10 +6791,76 @@ const u32 sched_prio_to_wmult[40] = {
 
 SYSCALL_DEFINE2(sched_setweight, pid_t, pid, int, weight)
 {
-	//To Do : implement syscall
+	printk("Here is setweight!!\n");
+	struct task_struct *task;
+	struct rq *rq;
+	struct rq_flags rf;
+	int policy;
+	int origin_policy;
+	int retval = -ESRCH;
+	int delta;
+	kuid_t curr_euid;
+	
+	if(pid<0) return -EINVAL;
+	
+	rcu_read_lock();
+	
+	task = find_process_by_pid(pid);
+
+	if(task){
+		retval = security_task_getscheduler(task);
+		if(!retval){
+			policy = task->policy;
+			retval = -EINVAL;
+			if(policy == SCHED_WRR){
+				curr_euid = current_cred() ->euid;
+				retval = -EACCES;
+				if(check_same_owner(task) || curr_euid.val == 0){
+					task_rq_lock(task, &rf);
+					rq = task_rq(task);
+					delta = weight - task->wrr.weight;
+					
+					task->wrr.weight += delta;
+					rq->wrr.weight_sum += delta;
+					
+					task_rq_unlock(rq,task,&rf);
+					retval = 0;
+				}
+			}
+		}
+	}
+	
+	rcu_read_unlock();
+	return retval;
 }
 
 SYSCALL_DEFINE1(sched_getweight, pid_t, pid)
 {
-	//To Do : implement syscall
+	printk("Here is getweight!\n");
+	struct task_struct *task;
+	int weight = -ESRCH;
+	int policy;
+	
+	if(pid<0){
+		return -EINVAL;
+	}
+	
+	rcu_read_lock();
+	task = find_process_by_pid(pid);
+	
+	if(task){
+		weight = security_task_getscheduler(task);
+		if(!weight){
+			policy = task->policy;
+			if(policy == SCHED_WRR){
+				weight = task->wrr.weight;
+			}
+			else{
+				weight = -ESRCH;
+			}
+		}
+	}
+	rcu_read_unlock();
+	printk("get weight return value is %d \n",weight);
+	return weight;
 } 

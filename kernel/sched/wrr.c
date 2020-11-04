@@ -195,8 +195,6 @@ static void task_tick_wrr(struct rq *rq, struct task_struct *task, int queued)
 		list_rotate_left(&wrr_rq->rq_head); 
 		set_tsk_need_resched(curr_task);
 	}
-
-
 }
 
 static unsigned int get_rr_interval_wrr(struct rq *rq, struct task_struct *p)
@@ -234,6 +232,109 @@ static void switched_from_wrr(struct rq *rq, struct task_struct *p)
 static void switched_to_wrr(struct rq *rq, struct task_struct *p)
 {
 	// Prevent Error
+}
+
+static struct task_struct* find_migratable_task_wrr(int min_cpu, int max_cpu, struct rq *min_rq, struct rq *max_rq, unsigned long min_weight, unsigned long max_weight)
+{
+	struct sched_wrr_entity *wrr_en;
+	struct task_struct *migratable_task = NULL;
+	struct wrr_rq *wrr_rq = &max_rq->wrr;
+	unsigned long migratable_task_weight = 0;
+
+	list_for_each_entry(wrr_en, &wrr_rq->rq_head, run_list){
+		struct task_struct *p = container_of(wrr_en, struct task_struct, wrr);
+		unsigned long weight = wrr_en->weight;
+		if (task_running(max_rq, p)) continue;
+		if (!cpumask_test_cpu(min_cpu, &p->cpus_allowed)) continue;
+
+		if (max_weight - weight >= min_weight + weight) {
+			if ((!migratable_task) || migratable_task_weight < weight) {
+				migratable_task = p;
+				migratable_task_weight = weight;
+			}
+		}
+	}
+	return migratable_task;
+}
+
+static void migrate_task_wrr(struct task_struct *p, int min_cpu, int max_cpu)
+{
+	struct rq *src_rq = cpu_rq(max_cpu);
+	struct rq *dst_rq = cpu_rq(min_cpu);
+	deactivate_task(src_rq,p,0);
+	set_task_cpu(p,min_cpu);
+	activate_task(dst_rq, p, 0);
+}
+
+static void wrr_load_balance(void) {
+	unsigned long min_weight = 0, max_weight = 0;
+	int cpu, min_cpu, max_cpu;
+	struct task_struct *task;
+	unsigned long flags;
+	struct rq *min_rq, *max_rq;
+	
+	rcu_read_lock();
+	min_cpu = max_cpu = -1;
+	for_each_online_cpu(cpu) {
+		struct rq *rq = cpu_rq(cpu);
+		struct wrr_rq *wrr_rq = &rq->wrr;
+		
+		unsigned long curr_weight = wrr_rq->weight_sum;
+		
+		if (min_cpu == -1 || min_weight > curr_weight) {
+			min_cpu = cpu;
+			min_weight = curr_weight;
+		}
+		
+		if (max_cpu == -1 || max_weight < curr_weight) {
+			max_cpu = cpu;
+			max_weight = curr_weight;	
+		}
+											    }
+
+		if (min_cpu == max_cpu) {
+			goto out_unlock;
+		}
+		
+		// now we found MAX/MIN weighted cpu.
+		min_rq = cpu_rq(min_cpu);
+		max_rq = cpu_rq(max_cpu);
+		local_irq_save(flags);
+		double_rq_lock(min_rq, max_rq);
+
+		task = find_migratable_task_wrr(min_cpu, max_cpu, min_rq, max_rq, min_weight, max_weight);
+
+		// we don't have to retry...
+		if (task)
+			migrate_task_wrr(task, min_cpu, max_cpu);
+
+		double_rq_unlock(min_rq, max_rq);
+		local_irq_restore(flags);
+
+out_unlock:
+		rcu_read_unlock();
+}
+
+// jiffies of NEXT balance time
+unsigned long wrr_next_balance;
+static DEFINE_SPINLOCK(wrr_balance_lock);
+
+void wrr_trigger_load_balance(void) {
+	if (!time_after_eq(jiffies, wrr_next_balance)) return;
+
+	// for now, we should do load balancing
+	spin_lock(&wrr_balance_lock);
+
+	if (!time_after_eq(jiffies, wrr_next_balance)) {
+		// LB already performed.
+		spin_unlock(&wrr_balance_lock);
+		return;
+	}
+	
+	// before LB, set timeout.
+	wrr_next_balance = jiffies + 20;	
+	spin_unlock(&wrr_balance_lock);
+	wrr_load_balance();
 }
 
 // Declared in kernel/sched/sched.h
