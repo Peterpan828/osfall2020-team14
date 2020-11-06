@@ -3062,6 +3062,7 @@ void scheduler_tick(void)
 #ifdef CONFIG_SMP
 	rq->idle_balance = idle_cpu(cpu);
 	trigger_load_balance(rq);
+	wrr_trigger_load_balance();
 #endif
 	rq_last_tick_reset(rq);
 }
@@ -6791,15 +6792,15 @@ const u32 sched_prio_to_wmult[40] = {
 
 SYSCALL_DEFINE2(sched_setweight, pid_t, pid, int, weight)
 {
-	printk("Here is setweight!!\n");
 	struct task_struct *task;
 	struct rq *rq;
 	struct rq_flags rf;
 	int policy;
-	int origin_policy;
 	int retval = -ESRCH;
 	int delta;
 	kuid_t curr_euid;
+	
+	printk("Here is setweight!!\n");
 	
 	if(pid<0) return -EINVAL;
 	
@@ -6836,11 +6837,11 @@ SYSCALL_DEFINE2(sched_setweight, pid_t, pid, int, weight)
 
 SYSCALL_DEFINE1(sched_getweight, pid_t, pid)
 {
-	printk("Here is getweight!\n");
 	struct task_struct *task;
 	int weight = -ESRCH;
 	int policy;
 	
+	printk("Here is getweight!\n");
 	if(pid<0){
 		return -EINVAL;
 	}

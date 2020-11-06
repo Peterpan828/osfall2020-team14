@@ -44,9 +44,9 @@ static void dequeue_task_wrr(struct rq *rq, struct task_struct *p, int flags)
 	printk(KERN_INFO "Start Dequeue!!");
 	list_del(&wrr_en -> run_list);
 	
-	(rq -> wrr.nr_queue)--;
+	rq -> wrr.nr_queue--;
 	rq -> wrr.weight_sum -= wrr_en -> weight;
-	(rq -> nr_running)--;
+	rq -> nr_running--;
 	printk(KERN_INFO "Dequeue!!");
 
 }
@@ -64,83 +64,28 @@ static struct task_struct *pick_next_task_wrr(struct rq *rq, struct task_struct 
 	return next_task;
 }
 
-static DEFINE_PER_CPU(cpumask_var_t, local_cpu_mask);
-
-
 
 #ifdef CONFIG_SMP
 static int find_lowest_rq(struct task_struct *task)
 {
-        struct sched_domain *sd;
-        struct cpumask *lowest_mask = this_cpu_cpumask_var_ptr(local_cpu_mask);
-        int this_cpu = smp_processor_id();
-        int cpu      = task_cpu(task);
+	int cpu, target=-1;
+	int min;
 
-        /* Make sure the mask is initialized first */
-        if (unlikely(!lowest_mask))
-                return -1;
-
-        if (task->nr_cpus_allowed == 1)
-                return -1; /* No other targets possible */
-
-        if (!cpupri_find(&task_rq(task)->rd->cpupri, task, lowest_mask))
-                return -1; /* No targets found */
-
-        /*
-         * At this point we have built a mask of cpus representing the
-         * lowest priority tasks in the system.  Now we want to elect
-         * the best one based on our affinity and topology.
-         *
-         * We prioritize the last cpu that the task executed on since
-         * it is most likely cache-hot in that location.
-         */
-        if (cpumask_test_cpu(cpu, lowest_mask))
-                return cpu;
-
-        /*
-         * Otherwise, we consult the sched_domains span maps to figure
-         * out which cpu is logically closest to our hot cache data.
-         */
-        if (!cpumask_test_cpu(this_cpu, lowest_mask))
-                this_cpu = -1; /* Skip this_cpu opt if not among lowest */
-
-        rcu_read_lock();
-        for_each_domain(cpu, sd) {
-                if (sd->flags & SD_WAKE_AFFINE) {
-                        int best_cpu;
-
-                        /*
-                         * "this_cpu" is cheaper to preempt than a
-                         * remote processor.
-                         */
-                        if (this_cpu != -1 &&
-                            cpumask_test_cpu(this_cpu, sched_domain_span(sd))) {
-                                rcu_read_unlock();
-                                return this_cpu;
-                        }
-
-                        best_cpu = cpumask_first_and(lowest_mask,
-                                                     sched_domain_span(sd));
-                        if (best_cpu < nr_cpu_ids) {
-                                rcu_read_unlock();
-				return best_cpu;
-                        }
-                }
-        }
-        rcu_read_unlock();
-
-        /*
-         * And finally, if there were no matches within the domains
-         * just give the caller *something* to work with from the compatible
-         * locations.
-         */
-        if (this_cpu != -1)
-                return this_cpu;
-
-        cpu = cpumask_any(lowest_mask);
-        if (cpu < nr_cpu_ids)
-                return cpu;
-        return -1;
+	for_each_online_cpu(cpu){
+		struct rq *rq = cpu_rq(cpu);
+		struct wrr_rq *wrr_rq = &rq->wrr;
+		if(target == -1)
+		{
+			target = cpu;
+			min = wrr_rq->weight_sum;
+		}
+		else if(wrr_rq->weight_sum<min && cpumask_test_cpu(cpu, &task->cpus_allowed))
+		{
+			target = cpu;
+			min = wrr_rq -> weight_sum;
+		}
+	}
+	return target;
 }
 
                                                                                                                                                                     
@@ -184,7 +129,7 @@ static void task_tick_wrr(struct rq *rq, struct task_struct *task, int queued)
 	struct sched_wrr_entity *wrr_en = &curr_task->wrr;
 
 	if (wrr_en->time_slice > 0){
-		printk(KERN_INFO "Run More!");
+		//printk(KERN_INFO "Run More!");
 		return ;}
 
 	printk(KERN_INFO "No more time slice!!");
@@ -306,14 +251,17 @@ static void wrr_load_balance(void) {
 
 		// we don't have to retry...
 		if (task)
+		{
 			migrate_task_wrr(task, min_cpu, max_cpu);
+			printk(KERN_INFO "Balancing!!");
+		}
 
 		double_rq_unlock(min_rq, max_rq);
 		local_irq_restore(flags);
 
-out_unlock:
-		rcu_read_unlock();
-}
+		out_unlock:
+			rcu_read_unlock();
+	}
 
 // jiffies of NEXT balance time
 unsigned long wrr_next_balance;
