@@ -42,12 +42,19 @@
 
 
 // init function (core.c)
-void init_wrr_rq(struct wrr_rq *wrr_rq)
+int init_wrr_rq(struct wrr_rq *wrr_rq, int cpu)
 {       
         //Init Run Queue of WRR
+	if(cpu == 3){
+		wrr_rq->usable=0;
+	}
+
+	else wrr_rq->usable=1;
+
         INIT_LIST_HEAD(&wrr_rq->rq_head);
         wrr_rq -> nr_queue = 0;
         wrr_rq -> weight_sum = 0;
+	return 0;
 }
 
 
@@ -5897,7 +5904,7 @@ void __init sched_init(void)
 		init_rt_rq(&rq->rt);
 		init_dl_rq(&rq->dl);
 		//proj2(wrr)
-		init_wrr_rq(&rq->wrr);
+		init_wrr_rq(&rq->wrr, i);
 #ifdef CONFIG_FAIR_GROUP_SCHED
 		root_task_group.shares = ROOT_TASK_GROUP_LOAD;
 		INIT_LIST_HEAD(&rq->leaf_cfs_rq_list);
@@ -6800,7 +6807,7 @@ SYSCALL_DEFINE2(sched_setweight, pid_t, pid, int, weight)
 	int delta;
 	kuid_t curr_euid;
 	
-	printk("Here is setweight!!\n");
+	//printk("Here is setweight!!\n");
 	
 	if(pid<0) return -EINVAL;
 	
@@ -6841,7 +6848,7 @@ SYSCALL_DEFINE1(sched_getweight, pid_t, pid)
 	int weight = -ESRCH;
 	int policy;
 	
-	printk("Here is getweight!\n");
+	//printk("Here is getweight!\n");
 	if(pid<0){
 		return -EINVAL;
 	}
@@ -6862,6 +6869,6 @@ SYSCALL_DEFINE1(sched_getweight, pid_t, pid)
 		}
 	}
 	rcu_read_unlock();
-	printk("get weight return value is %d \n",weight);
+	//printk("get weight return value is %d \n",weight);
 	return weight;
 } 
