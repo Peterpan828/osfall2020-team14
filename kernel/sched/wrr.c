@@ -87,20 +87,19 @@ static int find_lowest_rq(struct task_struct *task)
 	for_each_online_cpu(cpu){
 		if (cpu!=3)
 		{
+			rq = cpu_rq(cpu);
+			wrr_rq = &rq->wrr;
 
-		rq = cpu_rq(cpu);
-		wrr_rq = &rq->wrr;
-
-		if(target == -1)
-		{
-			target = cpu;
-			min = wrr_rq->weight_sum;
-		}
-		else if(wrr_rq->weight_sum<min && cpumask_test_cpu(cpu, &task->cpus_allowed))
-		{
-			target = cpu;
-			min = wrr_rq -> weight_sum;
-		}
+			if(target == -1)
+			{
+				target = cpu;
+				min = wrr_rq->weight_sum;
+			}
+			else if(wrr_rq->weight_sum<min && cpumask_test_cpu(cpu, &task->cpus_allowed))
+			{
+				target = cpu;
+				min = wrr_rq -> weight_sum;
+			}
 		}
 	}
 	return target;
@@ -208,19 +207,19 @@ static struct task_struct* find_migratable_task_wrr(int min_cpu, int max_cpu, st
 	struct task_struct *migratable_task = NULL;
 	struct wrr_rq *wrr_rq = &max_rq->wrr;
 	unsigned long migratable_task_weight = 0;
-	struct task_struct *p;
+	struct task_struct *task;
 	unsigned long weight;
 
 	list_for_each_entry(wrr_en, &wrr_rq->rq_head, run_list){
-		p = container_of(wrr_en, struct task_struct, wrr);
+		task = container_of(wrr_en, struct task_struct, wrr);
 		weight = wrr_en->weight;
-		if (task_running(max_rq, p)) continue;
-		if (!cpumask_test_cpu(min_cpu, &p->cpus_allowed)) continue;
-
-		if (max_weight - weight >= min_weight + weight) {
-			if ((!migratable_task) || migratable_task_weight < weight) {
-				migratable_task = p;
-				migratable_task_weight = weight;
+		if (task_running(max_rq, task)) continue;
+		if (cpumask_test_cpu(min_cpu, &task->cpus_allowed)){
+			if (max_weight - weight >= min_weight + weight) {
+				if ((!migratable_task) || migratable_task_weight < weight) {
+					migratable_task = task;
+					migratable_task_weight = weight;
+				}
 			}
 		}
 	}
@@ -229,11 +228,11 @@ static struct task_struct* find_migratable_task_wrr(int min_cpu, int max_cpu, st
 
 static void migrate_task_wrr(struct task_struct *p, int min_cpu, int max_cpu)
 {
-	struct rq *src_rq = cpu_rq(max_cpu);
-	struct rq *dst_rq = cpu_rq(min_cpu);
-	deactivate_task(src_rq,p,0);
+	struct rq *max_rq = cpu_rq(max_cpu);
+	struct rq *min_rq = cpu_rq(min_cpu);
+	deactivate_task(max_rq,p,0);
 	set_task_cpu(p,min_cpu);
-	activate_task(dst_rq, p, 0);
+	activate_task(min_rq, p, 0);
 }
 
 static void wrr_load_balance(void) {
@@ -247,53 +246,51 @@ static void wrr_load_balance(void) {
 	unsigned long curr_weight;
 	
 	rcu_read_lock();
-	min_cpu = max_cpu = -1;
+	min_cpu = -1;
+	max_cpu = -1;
 	for_each_online_cpu(cpu) {
-		if (cpu != 3){
+		if (cpu == 3) continue;
+		else{
+			rq = cpu_rq(cpu);
+			wrr_rq = &rq->wrr;
+			curr_weight = wrr_rq->weight_sum;
+		
+			if (min_cpu == -1 || min_weight > curr_weight) {
+				min_cpu = cpu;
+				min_weight = curr_weight;
+			}
+		
+			if (max_cpu == -1 || max_weight < curr_weight) {
+				max_cpu = cpu;
+				max_weight = curr_weight;	
+			}
+		}
+	}						    
 
-		rq = cpu_rq(cpu);
-		wrr_rq = &rq->wrr;
-		curr_weight = wrr_rq->weight_sum;
-		
-		if (min_cpu == -1 || min_weight > curr_weight) {
-			min_cpu = cpu;
-			min_weight = curr_weight;
-		}
-		
-		if (max_cpu == -1 || max_weight < curr_weight) {
-			max_cpu = cpu;
-			max_weight = curr_weight;	
-		}
-		}
+	if (min_cpu == max_cpu) {
+		rcu_read_unlock();
+		return;
 	}
-											    
-
-		if (min_cpu == max_cpu) {
-			goto out_unlock;
-		}
 		
-		// now we found MAX/MIN weighted cpu.
-		min_rq = cpu_rq(min_cpu);
-		max_rq = cpu_rq(max_cpu);
-		local_irq_save(flags);
-		double_rq_lock(min_rq, max_rq);
+	// now we found MAX/MIN weighted cpu.
+	min_rq = cpu_rq(min_cpu);
+	max_rq = cpu_rq(max_cpu);
+	local_irq_save(flags);
+	double_rq_lock(min_rq, max_rq);
 
-		task = find_migratable_task_wrr(min_cpu, max_cpu, min_rq, max_rq, min_weight, max_weight);
+	task = find_migratable_task_wrr(min_cpu, max_cpu, min_rq, max_rq, min_weight, max_weight);
 
-		// we don't have to retry...
-		if (task)
-		{
-			migrate_task_wrr(task, min_cpu, max_cpu);
-			//printk(KERN_INFO "Balancing!!");
-		}
+	// we don't have to retry...
+	if (task)
+	{
+		migrate_task_wrr(task, min_cpu, max_cpu);
+		//printk(KERN_INFO "Balancing!!");
+	}
 
-		double_rq_unlock(min_rq, max_rq);
-		local_irq_restore(flags);
-
-		out_unlock:
-			rcu_read_unlock();
+	double_rq_unlock(min_rq, max_rq);
+	local_irq_restore(flags);
+	rcu_read_unlock();
 }
-
 
 // jiffies of NEXT balance time
 unsigned long wrr_next_balance;
