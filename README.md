@@ -31,7 +31,7 @@ sched_setweight & sched_getweight allow us to read or update the task weight tra
 
 ### Implement wrr_sched_class (/kernel/sched/wrr.c)
 In wrr.c we construct the structure wrr_sched_classsuch as enqueue, dequeue etc...<br />
-```
+
 const struct sched_class wrr_sched_class = {<br />
 .next       		= &fair_sched_class, <br />
 .enqueue_task       = enqueue_task_wrr,<br />
@@ -53,7 +53,7 @@ const struct sched_class wrr_sched_class = {<br />
 .switched_from      = switched_from_wrr,<br />
 .switched_to        = switched_to_wrr,<br />
 .get_rr_interval         = get_rr_interval_wrr,} in addition to more functions for load balancing.
-```
+
 /kernel/sched/rt.c 
 /kernel/sched/fair.c
 
