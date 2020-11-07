@@ -1,3 +1,5 @@
+#define _GNU_SOURCE
+
 #include <stdio.h>
 #include <assert.h>
 #include <stdlib.h>
@@ -17,7 +19,6 @@ void trial_division(int num, pid_t pid)
 	int weight;
 	struct timespec begin, end;
 	long sec, nsec;
-
 	if (pid == 0) syscall(SCHED_SETWEIGHT, getpid(), 20);
 	else syscall(SCHED_SETWEIGHT, getpid(), 1);
 
@@ -54,27 +55,39 @@ int main(int argc, char *argv[])
 {
 	assert(argc == 2);
 	int procs = atoi(argv[1]);
-	int target = 1833357158; // random number?
+	long target = 1033357158; // random number?
 	int status;
 	pid_t pid;
-	
+	cpu_set_t mask;
+	CPU_ZERO(&mask);
+    	CPU_SET(0, &mask);
 	
 	struct sched_param wrr_param;
-	wrr_param.sched_priority = 0;
-	
+        wrr_param.sched_priority = 0;
+
 	sched_setscheduler(0,7,&wrr_param);
-	
+
 	for(int i=0; i<procs; i++)
 	{	
 		pid = fork();
 		if (pid == 0) break;
+
+		if(i == procs -1 && pid !=0)
+		{
+			pid = fork();
+			if (pid == 0)
+			{
+				sched_setaffinity(0, sizeof(mask), &mask);
+				while(1);
+			}
+			printf("Dummy Process Started!!\n");	
+
+		}
+
 	}
 
+	sched_setaffinity(0, sizeof(mask), &mask);
 	trial_division(target, pid);
 
-	for (int i=0; i<procs; i++)
-	{
-		wait(&status);
-	}
 	return 0;
 }

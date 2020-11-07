@@ -146,14 +146,17 @@ static void task_tick_wrr(struct rq *rq, struct task_struct *task, int queued)
 	struct wrr_rq *wrr_rq = &rq->wrr;
 	struct sched_wrr_entity *wrr_en = &curr_task->wrr;
 
-	if (wrr_en->time_slice > 0){
+	if (--wrr_en->time_slice){
 		//printk(KERN_INFO "Run More!");
 		return ;
 	}
 
 	//printk(KERN_INFO "No more time slice!!");
 	if (wrr_rq->nr_queue == 1)
+	{
+		//printk(KERN_INFO "Only One!!");
 		wrr_set_time_slice(wrr_en);
+	}
 	else
 	{
 		wrr_set_time_slice(wrr_en);
@@ -337,6 +340,7 @@ const struct sched_class wrr_sched_class = {
         .task_tick              = task_tick_wrr,
 
         .get_rr_interval        = get_rr_interval_wrr,
+	.set_cpus_allowed = set_cpus_allowed_common,
 
 	
 };
