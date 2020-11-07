@@ -14,16 +14,13 @@
 #define SCHED_SETWEIGHT 398
 #define SCHED_GETWEIGHT 399
 
-void trial_division(int num, pid_t pid)
+void trial_division(int num)
 {	
 	int weight;
 	struct timespec begin, end;
 	long sec, nsec;
-	if (pid == 0) syscall(SCHED_SETWEIGHT, getpid(), 20);
-	else syscall(SCHED_SETWEIGHT, getpid(), 1);
 
 	weight = syscall(SCHED_GETWEIGHT, getpid());
-	printf("PID : %d  Weight : %d\n", getpid(), weight);
 	
 	int f = 2;
 
@@ -31,7 +28,7 @@ void trial_division(int num, pid_t pid)
 	while(num > 1)
 	{
 		if (num%f ==0){
-			//printf("New Factor is %d\n", f);
+			printf("New Factor is %d\n", f);
 			num /= f;
 		}
 		else f += 1;
@@ -46,48 +43,48 @@ void trial_division(int num, pid_t pid)
 		nsec += 1e9;
 	}
 
-	if (pid == 0) printf("Child(20) : %ld.%02lds\n", sec, nsec);
-	else printf("Parent(1) : %ld.%02lds\n", sec ,nsec);
+	printf("PID : %d Weight : %d Time : %ld.%02lds\n", getpid(), weight, sec, nsec);
 }
 
 
 int main(int argc, char *argv[])
 {
-	assert(argc == 2);
-	int procs = atoi(argv[1]);
-	long target = 1033357158; // random number?
+	assert(argc == 4);
+	int cpu = atoi(argv[1]);
+	int weight = atoi(argv[2]);
+	int procs = atoi(argv[3]);
+	long target = 117712234; // random number?
 	int status;
 	pid_t pid;
+
 	cpu_set_t mask;
 	CPU_ZERO(&mask);
-    	CPU_SET(0, &mask);
-	
+	for(int i=0; i<cpu; i++){
+    		CPU_SET(i, &mask);
+	}	
+
 	struct sched_param wrr_param;
         wrr_param.sched_priority = 0;
 
 	sched_setscheduler(0,7,&wrr_param);
+	syscall(SCHED_SETWEIGHT, getpid(), 10);
+	sched_setaffinity(0, sizeof(mask), &mask);
 
 	for(int i=0; i<procs; i++)
 	{	
 		pid = fork();
-		if (pid == 0) break;
-
-		if(i == procs -1 && pid !=0)
+		if (pid == 0)
 		{
-			pid = fork();
-			if (pid == 0)
-			{
-				sched_setaffinity(0, sizeof(mask), &mask);
-				while(1);
-			}
-			printf("Dummy Process Started!!\n");	
-
+			printf("New Dummy Process!!\n");
+			while(1);
 		}
-
+			
 	}
 
-	sched_setaffinity(0, sizeof(mask), &mask);
-	trial_division(target, pid);
+	
+	syscall(SCHED_SETWEIGHT, getpid(), weight);
+	trial_division(target);
+	wait(&status);
 
 	return 0;
 }
