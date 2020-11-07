@@ -88,3 +88,16 @@ Picking the processor that will perform load balancing happens in ```fair.c```.
 - Testing the System calls sched_setscheduler implemented in ```/kernel/sched/core.c```
 
 # Investigation
+Using only one CPU and 3 dummy process with default weight of 10, 1 Division Process
+we present Time measurement according to Weight grapgh => we notice that time taken decreases tragically with higher weight
+
+![Capture1](https://user-images.githubusercontent.com/71239705/98446797-8dd5a580-2163-11eb-9973-f38aac3bf211.PNG)
+
+Now we record the time taken depending on the number of processes in thw same conditions of the last test we notice that runtime is smaller the more CPU's we provide
+
+![Capture2](https://user-images.githubusercontent.com/71239705/98446798-8e6e3c00-2163-11eb-925c-6422de1c7f67.PNG)
+
+On the 3rd Picture we demonstrate Load balancing:
+after forking 4 times we have 5 processses, on the 2nd round P1 was running on CPU1 P3 and P4 on CPU2 and P2 and P5 on CPU3 wich makes total weight=10 for each CPU which is the goal of Load Balancing. 
+
+![Capture3](https://user-images.githubusercontent.com/71239705/98446799-8f06d280-2163-11eb-8ca7-a1b3c35fa772.PNG)
