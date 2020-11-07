@@ -33,27 +33,25 @@ In this project we implemented two systemcalls, Both implemented in ```/kernel/s
 ### Implement wrr_sched_class (/kernel/sched/wrr.c)
 In ```wrr.c``` we construct the structure wrr_sched_classsuch as enqueue, dequeue etc...<br />
 
-```const struct sched_class wrr_sched_class = {<br />```
-```.next       		= &fair_sched_class, <br />```
-```.enqueue_task       = enqueue_task_wrr,<br />```
-```.dequeue_task       = dequeue_task_wrr,<br />```
-```.yield_task         = yield_task_wrr,<br />```
-```.check_preempt_curr = check_preempt_curr_wrr,<br />```
-```.pick_next_task     = pick_next_task_wrr,<br />```
-```.put_prev_task      = put_prev_task_wrr,<br />```
-
- ```#ifdef CONFIG_SMP<br />```
-```.select_task_rq     = select_task_rq_wrr,<br />```
-```.rq_online      = rq_online_wrr,<br />```
-```.rq_offline      = rq_offline_wrr,<br />```
- ```#endif```
-
-```.set_curr_task      = set_curr_task_wrr,<br />```
-```.task_tick      = task_tick_wrr,<br />```
-```.task_fork      = task_fork_wrr,<br />```
-```.switched_from      = switched_from_wrr,<br />```
-```.switched_to        = switched_to_wrr,<br />```
-```.get_rr_interval         = get_rr_interval_wrr,}```
+```const struct sched_class wrr_sched_class = {<br />```<br />
+```.next       		= &fair_sched_class, <br />```<br />
+```.enqueue_task       = enqueue_task_wrr,<br />```<br />
+```.dequeue_task       = dequeue_task_wrr,<br />```<br />
+```.yield_task         = yield_task_wrr,<br />```<br />
+```.check_preempt_curr = check_preempt_curr_wrr,<br />```<br />
+```.pick_next_task     = pick_next_task_wrr,<br />```<br />
+```.put_prev_task      = put_prev_task_wrr,<br />```<br />
+ ```#ifdef CONFIG_SMP<br />```<br />
+```.select_task_rq     = select_task_rq_wrr,<br />```<br />
+```.rq_online      = rq_online_wrr,<br />```<br />
+```.rq_offline      = rq_offline_wrr,<br />```<br />
+ ```#endif```<br />
+```.set_curr_task      = set_curr_task_wrr,<br />```<br />
+```.task_tick      = task_tick_wrr,<br />```<br />
+```.task_fork      = task_fork_wrr,<br />```<br />
+```.switched_from      = switched_from_wrr,<br />```<br />
+```.switched_to        = switched_to_wrr,<br />```<br />
+```.get_rr_interval         = get_rr_interval_wrr,}```<br />
 in addition to more functions for load balancing.
 
 ### Implementing sched_wrr_entity (/include/linux/sched.h)
