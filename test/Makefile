@@ -1,6 +1,6 @@
 CC = arm-linux-gnueabi-gcc
 CFLAGS = -I ../include
-SRC = trial.c dummy.c
+SRC = load_balance.c trial.c
 OBJ = $(SRC:.c=.o)
 TARGETS = $(SRC:.c=)
 
