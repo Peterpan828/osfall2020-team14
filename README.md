@@ -33,43 +33,49 @@ In this project we implemented two systemcalls, Both implemented in ```/kernel/s
 ### Implement wrr_sched_class (/kernel/sched/wrr.c)
 In ```wrr.c``` we construct the structure wrr_sched_classsuch as enqueue, dequeue etc...<br />
 
-```const struct sched_class wrr_sched_class = {<br />```<br />
-```.next       		= &fair_sched_class, <br />```<br />
-```.enqueue_task       = enqueue_task_wrr,<br />```<br />
-```.dequeue_task       = dequeue_task_wrr,<br />```<br />
-```.yield_task         = yield_task_wrr,<br />```<br />
-```.check_preempt_curr = check_preempt_curr_wrr,<br />```<br />
-```.pick_next_task     = pick_next_task_wrr,<br />```<br />
-```.put_prev_task      = put_prev_task_wrr,<br />```<br />
- ```#ifdef CONFIG_SMP<br />```<br />
-```.select_task_rq     = select_task_rq_wrr,<br />```<br />
-```.rq_online      = rq_online_wrr,<br />```<br />
-```.rq_offline      = rq_offline_wrr,<br />```<br />
- ```#endif```<br />
-```.set_curr_task      = set_curr_task_wrr,<br />```<br />
-```.task_tick      = task_tick_wrr,<br />```<br />
-```.task_fork      = task_fork_wrr,<br />```<br />
-```.switched_from      = switched_from_wrr,<br />```<br />
-```.switched_to        = switched_to_wrr,<br />```<br />
-```.get_rr_interval         = get_rr_interval_wrr,}```<br />
+```
+const struct sched_class wrr_sched_class = {
+.next       		= &fair_sched_class,
+.enqueue_task       = enqueue_task_wrr,
+.dequeue_task       = dequeue_task_wrr,
+.yield_task         = yield_task_wrr,
+.check_preempt_curr = check_preempt_curr_wrr,
+.pick_next_task     = pick_next_task_wrr,
+.put_prev_task      = put_prev_task_wrr,
+#ifdef CONFIG_SMP
+.select_task_rq     = select_task_rq_wrr,
+.rq_online      = rq_online_wrr,
+.rq_offline      = rq_offline_wrr,
+#endif
+.set_curr_task      = set_curr_task_wrr,
+.task_tick      = task_tick_wrr,
+.task_fork      = task_fork_wrr,
+.switched_from      = switched_from_wrr,
+.switched_to        = switched_to_wrr,
+.get_rr_interval         = get_rr_interval_wrr,}
+```
 in addition to more functions for load balancing.
 
 ### Implementing sched_wrr_entity (/include/linux/sched.h)
 If ```wrr_rq_list``` is not empty, the first element of the list is the currently running task. ```wrr_rq_list``` is one element of ```struct sched_wrr_entity``` implemented under ```task struct```.
 
-```struct sched_wrr_entity {<br />```
-   ``` struct list_head run_list; // linked to other task_struct, or wrr_rq<br />```
-```    unsigned int time_slice;<br />```
-```    unsigned int weight;<br />```
-```};<br />```
+```
+struct sched_wrr_entity {
+struct list_head run_list; // linked to other task_struct, or wrr_rq
+unsigned int time_slice;
+unsigned int weight;
+};
+```
 
 ### Implementing wrr_rq (/kernel/sched/sched.h)
 Members of the run queue are of type:
-```struct wrr_rq {<br />```
-```    unsigned int wrr_nr_running; // size of run queue<br />```
-```    struct list_head wrr_rq_list; // list of current run queue<br />```
-```    unsigned long wrr_weight_total; // total weight of current run queue<br />```
-```};<br />```
+```
+struct wrr_rq 
+unsigned int wrr_nr_running; // size of run queue
+struct list_head wrr_rq_list; // list of current run queue
+unsigned long wrr_weight_total; // total weight of current run queue
+};
+```
 
 ### Implementing Load balancing 
 To enhance efficiency, we execute load balancing every 2000ms. it is implemented as ```wrr_load_balance``` in ```wrr.c```.
