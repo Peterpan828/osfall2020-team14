@@ -44,7 +44,7 @@ void trial_division(int num, int flag)
 	}
 	if(flag == 1)
 	{
-		sleep(10);
+		sleep(20);
 	}
 
 	printf("PID : %d Weight : %d CPU : %d Time : %ld.%02lds\n", getpid(), weight, sched_getcpu(), sec, nsec);

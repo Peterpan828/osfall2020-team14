@@ -6806,7 +6806,7 @@ SYSCALL_DEFINE2(sched_setweight, pid_t, pid, int, weight)
 	
 	//printk("Here is setweight!!\n");
 	
-	if(pid<0) return -EINVAL;
+	if(pid<0 || weight < 1 || weight > 20) return -EINVAL;
 	
 	rcu_read_lock();
 	
