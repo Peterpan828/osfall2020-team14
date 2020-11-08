@@ -104,5 +104,5 @@ Now we record the time taken depending on the number of processes in thw same co
 On the 3rd Picture we demonstrate Load balancing:
 after forking 4 times we have 5 processses, on the 2nd round P1 was running on CPU1 P3 and P4 on CPU2 and P2 and P5 on CPU3 wich makes total weight=10 for each CPU which is the goal of Load Balancing. 
 
-<img width="500" alt="KakaoTalk_20201108_111144721" src="https://user-images.githubusercontent.com/59055419/98456068-141dd600-21bc-11eb-99e5-71421b9f2d36.png">
+<img width="700" alt="KakaoTalk_20201108_111144721" src="https://user-images.githubusercontent.com/59055419/98456068-141dd600-21bc-11eb-99e5-71421b9f2d36.png">
 
