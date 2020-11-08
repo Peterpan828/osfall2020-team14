@@ -35,24 +35,28 @@ In ```wrr.c``` we construct the structure wrr_sched_classsuch as enqueue, dequeu
 
 ```
 const struct sched_class wrr_sched_class = {
-.next       		= &fair_sched_class,
-.enqueue_task       = enqueue_task_wrr,
-.dequeue_task       = dequeue_task_wrr,
-.yield_task         = yield_task_wrr,
-.check_preempt_curr = check_preempt_curr_wrr,
-.pick_next_task     = pick_next_task_wrr,
-.put_prev_task      = put_prev_task_wrr,
+.next                   = &fair_sched_class,
+.enqueue_task           = enqueue_task_wrr,
+.dequeue_task           = dequeue_task_wrr,
+.pick_next_task         = pick_next_task_wrr,
+.yield_task		= yield_task_wrr,
+.check_preempt_curr	= check_preempt_curr_wrr,
+.set_curr_task		= set_curr_task_wrr,
+.put_prev_task		= put_prev_task_wrr,
+.switched_from		= switched_from_wrr,
+.switched_to		= switched_to_wrr,
+
 #ifdef CONFIG_SMP
-.select_task_rq     = select_task_rq_wrr,
-.rq_online      = rq_online_wrr,
-.rq_offline      = rq_offline_wrr,
+.select_task_rq         = select_task_rq_wrr,
+.rq_online		= rq_online_wrr,
+.rq_offline		= rq_offline_wrr,
 #endif
-.set_curr_task      = set_curr_task_wrr,
-.task_tick      = task_tick_wrr,
-.task_fork      = task_fork_wrr,
-.switched_from      = switched_from_wrr,
-.switched_to        = switched_to_wrr,
-.get_rr_interval         = get_rr_interval_wrr,}
+
+.task_tick              = task_tick_wrr,
+
+.get_rr_interval        = get_rr_interval_wrr,
+.set_cpus_allowed = set_cpus_allowed_common,	
+};
 ```
 in addition to more functions for load balancing.
 
