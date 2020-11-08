@@ -55,7 +55,7 @@ const struct sched_class wrr_sched_class = {
 .task_tick              = task_tick_wrr,
 
 .get_rr_interval        = get_rr_interval_wrr,
-.set_cpus_allowed = set_cpus_allowed_common,	
+.set_cpus_allowed       = set_cpus_allowed_common,	
 };
 ```
 in addition to more functions for load balancing.
