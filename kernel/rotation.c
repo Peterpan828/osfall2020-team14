@@ -22,9 +22,9 @@ static LIST_HEAD(reader_active_list);
 DEFINE_SPINLOCK(rot_spin_lock);
 
 static int rotation = 0; // initialize rotation
-static int curr_lock_state[360] = {0,};
+static int curr_lock_state[360] = {0,}; // 0 : no thread has lock, -1 : a writer has lock, 1 : a reader has rock, 2 : 2 readers have lock...
 
-int rot_in_bound(struct rotation_lock *param){
+int rot_in_bound(struct rotation_lock *param){ //
 	int dist = rotation - param->degree;
 	if(dist<0) dist = -dist;
 	if(dist >= 180) dist = 360 - dist;
@@ -32,7 +32,7 @@ int rot_in_bound(struct rotation_lock *param){
 	return dist <= param->range;
 }
 
-int waiting_writer_check(void){
+int waiting_writer_check(void){ //check if there are waiting writers
 	struct rotation_lock *curr;
 	int degree;
 	int range;
@@ -45,17 +45,17 @@ int waiting_writer_check(void){
 	return 1;
 }
 
-static int get_lock_available(struct rotation_lock *param){
+static int get_lock_available(struct rotation_lock *param){ //check thread that want to get lock can get lock
 	int degree = param->degree;
 	int range = param->range;
 	int type = param->rw_type;
-
+	int i;
 	int lower_bound = degree-range;
 	if(lower_bound < 0) lower_bound += 360;
-	
 	int upper_bound = degree+range;
 	if(upper_bound >= 360) upper_bound -= 360;
-	int i;
+	
+	
 	if(rot_in_bound(param)){
 		if(type){ // writer
 			for(i=lower_bound; i<lower_bound + 2*range;	i++){
@@ -80,7 +80,7 @@ static int get_lock_available(struct rotation_lock *param){
 	}
 }
 
-int lock_active(struct rotation_lock *param){
+int lock_active(struct rotation_lock *param){ //acquire lock add to list
 	int degree = param->degree;
 	int range = param->range;
 	int i;
@@ -93,7 +93,7 @@ int lock_active(struct rotation_lock *param){
 				printk("lock_active failed!\n");
 				return 0;
 			}
-			curr_lock_state[i] = 1;
+			curr_lock_state[i]++;
 		}
 		list_add_tail(&param->list, &reader_active_list);
 		printk("active success!!");
@@ -102,7 +102,7 @@ int lock_active(struct rotation_lock *param){
 	
 	}
 	return 1;
-}//here is acquire lock add to list
+}
 
 long sys_set_rotation (int __user degree) {
 	int ret = 0;
@@ -164,7 +164,7 @@ long sys_rotlock_write (int degree, int range){
 }
 
 
-struct rotation_lock *del_active_lock(int degree, int range, struct list_head *header){
+struct rotation_lock *del_active_lock(int degree, int range, struct list_head *header){ // delete thread that have lock and return thread information
 	struct rotation_lock *curr;
 	pid_t curr_pid = current->pid;
 
@@ -174,10 +174,10 @@ struct rotation_lock *del_active_lock(int degree, int range, struct list_head *h
 			return curr;
 		}
 	}
-	return NULL;
+	return NULL; // if there is no matched tread
 }
 
-int rw_lock_release(int degree, int range, int rw_type){
+int rw_lock_release(int degree, int range, int rw_type){ // current_lock_state release
 	int i;
 	if(rw_type){ // writer
 
