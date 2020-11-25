@@ -41,10 +41,10 @@ int main(int argc, char *argv[])
 
 	while(1)
 	{ 	
-		printf("Try lock\n");
+		//printf("Try lock\n");
 		rc = syscall(sys_rotlock_read, 90, 90);
         if (rc<0) return -EINVAL;
-		printf("Acquired lock\n");
+		//printf("Acquired lock\n");
 
 		fp = fopen("integer", "r"); // Make file if empty
         if(fp == NULL) printf("Cannot Open file!!\n");
@@ -54,10 +54,10 @@ int main(int argc, char *argv[])
 		printf("trial-%d: %d =", idx, num);
 		trial_division(num);
 
-		printf("Try release\n");
+		//printf("Try release\n");
 		rc = syscall(sys_rotunlock_read, 90, 90);
         if (rc<0) return -EINVAL;
-		printf("Released\n");
+		//printf("Released\n");
 
 	}
 }

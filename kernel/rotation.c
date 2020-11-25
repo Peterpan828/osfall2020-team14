@@ -58,7 +58,6 @@ static int get_lock_available(struct rotation_lock *param)
 	if(upper_bound >= 360) upper_bound -= 360;
 	
 	
-	
 	if(rot_in_bound(param)){
 		if(type){ // writer
 			for(i=lower_bound; i<lower_bound + 2*range;	i++){
@@ -80,7 +79,7 @@ static int get_lock_available(struct rotation_lock *param)
 		}
 	}
 	else{
-		printk(KERN_INFO "Rotation : %d!!\n", rotation);
+		//printk(KERN_INFO "Rotation : %d!!\n", rotation);
 		return 0;
 	}
 }
@@ -94,12 +93,11 @@ int lock_active(struct rotation_lock *param){ //acquire lock & add to list
 			while(i>=360) i -= 360;
 			while(i<0) i += 360;
 
-			/*  Already checked at get_lock_available
 			if(curr_lock_state[i] < 0){
-				//printk(KERN_INFO "lock_active failed!\n");
+				printk(KERN_INFO "readlock_active failed!\n");
 				return 0;
 			}
-			*/
+			
 			curr_lock_state[i]++;
 		}
 		list_add_tail(&param->list, &reader_active_list);
@@ -109,6 +107,11 @@ int lock_active(struct rotation_lock *param){ //acquire lock & add to list
 		for(i = degree-range; i <= degree+range; i++){
 			while(i>=360) i -= 360;
 			while(i<0) i += 360;
+
+			if(curr_lock_state[i] != 0){
+				printk(KERN_INFO "writelock_active failed!\n");
+				return 0;
+			}
 
 			curr_lock_state[i]--;
 		}
@@ -158,15 +161,16 @@ long sys_rotlock_read (int degree, int range) {
 	
 	spin_lock(&rot_spin_lock);
 	list_add_tail(&rot_lock->list, &reader_waiting_list); //reader thread add wating list
-	
+	spin_unlock(&rot_spin_lock);
+
 	while(1){
 		if(get_lock_available(rot_lock)){
+			spin_lock(&rot_spin_lock);
 			list_del(&rot_lock->list);
 			lock_active(rot_lock);
 			spin_unlock(&rot_spin_lock);
 			return 1; // success
 		}
-		else ;
 	}
 }
 
@@ -196,15 +200,16 @@ long sys_rotlock_write (int degree, int range){
 	list_add_tail(&rot_lock->list, &writer_waiting_list); //writer thread add wating list
 	spin_unlock(&rot_spin_lock);
 	
-	spin_lock(&rot_spin_lock);
 	while(1){
 		if(get_lock_available(rot_lock)){
+			spin_lock(&rot_spin_lock);
 			list_del(&rot_lock->list);
 			lock_active(rot_lock);
 			spin_unlock(&rot_spin_lock);
 			return 1; // success
 		}
 	}
+	
 }
 
 
