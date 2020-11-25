@@ -6,6 +6,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include <unistd.h>
+#include <stdio.h>
 
 int notFinished = 1;
 
@@ -27,7 +28,8 @@ void sensor()
 	while (notFinished) {
 		degree = (degree + 30) % 360;
 		syscall(SYSCALL_SET_ROTATION, degree);
-		sleep(2);
+		//sleep(2);
+		sleep(1);
 	}
 }
 

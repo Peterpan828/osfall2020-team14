@@ -1,7 +1,5 @@
 #include <linux/list.h>
 
-
-
 struct rotation_lock{
 	int degree;
 	int range;
