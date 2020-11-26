@@ -1,3 +1,7 @@
+## Build :
+    sudo ./proj3.sh
+    cd test & ./test.sh
+
 ##  system call : 
     398 399 400 401 402 (set_rotation, rotlock_read, rotlock_write, rotunlock_read, rotunlock_write)
 
