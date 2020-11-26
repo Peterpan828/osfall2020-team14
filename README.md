@@ -12,3 +12,6 @@
     }; // include/linux/rotation.h
 
 
+## Test :
+    ./rotd
+    ./selector 200 & ./trial 0 & ./trial 1
