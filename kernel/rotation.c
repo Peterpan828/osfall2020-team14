@@ -97,13 +97,19 @@ int lock_active(struct rotation_lock *param){ //acquire lock & add to list
 				printk(KERN_INFO "readlock_active failed!\n");
 				return 0;
 			}
+		}
+
+		for(i = degree-range; i <= degree+range; i++){
+			while(i>=360) i -= 360;
+			while(i<0) i += 360;
 			
 			curr_lock_state[i]++;
 		}
+		
 		list_add_tail(&param->list, &reader_active_list);
 		//printk(KERN_INFO "Reader lock acquired!!");
 	}
-	else{ // writer add to writer_active_list
+	else{ // add writer to writer_active_list
 		for(i = degree-range; i <= degree+range; i++){
 			while(i>=360) i -= 360;
 			while(i<0) i += 360;
@@ -112,12 +118,55 @@ int lock_active(struct rotation_lock *param){ //acquire lock & add to list
 				printk(KERN_INFO "writelock_active failed!\n");
 				return 0;
 			}
+		}
+
+		for(i = degree-range; i <= degree+range; i++){
+			while(i>=360) i -= 360;
+			while(i<0) i += 360;
 
 			curr_lock_state[i]--;
 		}
+
 		list_add_tail(&param->list, &writer_active_list);
 	}
 	return 1;
+}
+
+static int wake_next(void)
+{	
+	struct rotation_lock *curr;
+
+	// wake up writer first if there exist waiting writer
+	list_for_each_entry(curr, &writer_waiting_list, list){
+		if(get_lock_available(curr))
+		{
+			struct task_struct *target = pid_task(find_vpid(curr->pid), PIDTYPE_PID);
+			if (target == NULL){
+				printk(KERN_INFO "Error at wake up writer\n");
+				return -EINVAL;
+			}
+			//printk(KERN_INFO "Wake up Writer!!\n");
+			wake_up_process(target);
+			return 0;
+		}
+	}
+	
+	list_for_each_entry(curr, &reader_waiting_list, list){
+		if(get_lock_available(curr))
+		{
+			struct task_struct *target = pid_task(find_vpid(curr->pid), PIDTYPE_PID);
+			if (target == NULL)
+			{
+				printk(KERN_INFO "Error at wake up reader\n");
+				return -EINVAL;
+			} 
+			//printk(KERN_INFO "Wake up Reader!!\n");
+			wake_up_process(target);
+		}
+	}
+	
+	return 0;
+
 }
 
 long sys_set_rotation (int degree) {
@@ -132,7 +181,7 @@ long sys_set_rotation (int degree) {
 	rotation = degree;
 	//active waiting process in here!!
 	ret = rotation;
-
+	wake_next();
 	spin_unlock(&rot_spin_lock);
 	return ret;
 }
@@ -160,17 +209,22 @@ long sys_rotlock_read (int degree, int range) {
 	rot_lock->pid = current->pid;
 	
 	spin_lock(&rot_spin_lock);
-	list_add_tail(&rot_lock->list, &reader_waiting_list); //reader thread add wating list
-	spin_unlock(&rot_spin_lock);
-
+	list_add_tail(&rot_lock->list, &reader_waiting_list); //reader thread add waiting list
+	
 	while(1){
 		if(get_lock_available(rot_lock)){
-			spin_lock(&rot_spin_lock);
 			list_del(&rot_lock->list);
 			lock_active(rot_lock);
 			spin_unlock(&rot_spin_lock);
 			return 1; // success
 		}
+
+		set_current_state(TASK_INTERRUPTIBLE);
+		spin_unlock(&rot_spin_lock);
+		schedule();
+
+		set_current_state(TASK_RUNNING);
+		spin_lock(&rot_spin_lock);
 	}
 }
 
@@ -198,16 +252,21 @@ long sys_rotlock_write (int degree, int range){
 	
 	spin_lock(&rot_spin_lock);
 	list_add_tail(&rot_lock->list, &writer_waiting_list); //writer thread add wating list
-	spin_unlock(&rot_spin_lock);
 	
 	while(1){
 		if(get_lock_available(rot_lock)){
-			spin_lock(&rot_spin_lock);
 			list_del(&rot_lock->list);
 			lock_active(rot_lock);
 			spin_unlock(&rot_spin_lock);
 			return 1; // success
 		}
+
+		set_current_state(TASK_INTERRUPTIBLE);
+		spin_unlock(&rot_spin_lock);
+		schedule();
+
+		set_current_state(TASK_RUNNING);
+		spin_lock(&rot_spin_lock);
 	}
 	
 }
@@ -300,6 +359,8 @@ long sys_rotunlock_read (int degree, int range){
 		printk("Error in lock_release!\n");
 		return -EFAULT;
 	}
+
+	wake_next();
 	spin_unlock(&rot_spin_lock);
 	kfree(rot_lock);
 	//printk("success reader unlock!\n");
@@ -334,6 +395,7 @@ long sys_rotunlock_write(int degree, int range){
 		printk("Error in lock_release!\n");
 		return -EFAULT;
 	}
+	wake_next();
 	spin_unlock(&rot_spin_lock);
 	kfree(rot_lock);
 	//printk("success reader unlock!\n");

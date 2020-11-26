@@ -32,7 +32,7 @@ int main(int argc, char *argv[])
         rc = syscall(sys_rotunlock_write, 90, 90);
         if (rc<0) return -EINVAL;
         num++;
-
+        //sleep(1.0); // for debug
     }
     return 0;
 }

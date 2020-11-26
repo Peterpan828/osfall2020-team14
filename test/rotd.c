@@ -28,8 +28,7 @@ void sensor()
 	while (notFinished) {
 		degree = (degree + 30) % 360;
 		syscall(SYSCALL_SET_ROTATION, degree);
-		//sleep(2);
-		sleep(1);
+		sleep(2);
 	}
 }
 

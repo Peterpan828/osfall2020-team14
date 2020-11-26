@@ -46,7 +46,7 @@ int main(int argc, char *argv[])
         if (rc<0) return -EINVAL;
 		//printf("Acquired lock\n");
 
-		fp = fopen("integer", "r"); // Make file if empty
+		fp = fopen("integer", "r");
         if(fp == NULL) printf("Cannot Open file!!\n");
         fscanf(fp, "%d", &num);
         fclose(fp);
@@ -58,6 +58,6 @@ int main(int argc, char *argv[])
 		rc = syscall(sys_rotunlock_read, 90, 90);
         if (rc<0) return -EINVAL;
 		//printf("Released\n");
-
+		//sleep(1.0); // for debug
 	}
 }
