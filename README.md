@@ -27,7 +27,7 @@ By running this script our kernel will start building.
 
 
 ## Implementation
-#  System calls
+###  System calls
 all rotation related functions are implemented in 
 ```kernel/rotation.c```  
 ```include/linux/rotation.h```
@@ -40,7 +40,7 @@ all rotation related functions are implemented in
 | 402  | rotunlock_write  | Release a write lock using the given rotation range  |
 
 
-#  Implement struct rotation_lock in  // include/linux/rotation.h
+###  Implement struct rotation_lock in  // include/linux/rotation.h
 ```
 struct rotation_lock{
         int degree;
@@ -51,6 +51,8 @@ struct rotation_lock{
     };
 ```
 implemented in ```/include/linux/rotation.h```to store informations about rotational lock
+
+###  Implement rotation related functions in  // kernel/rotation.c
 
 ## Test :
 - ```selector.c``` takes the write lock, writes the integer from argument to a file called integer in the current directory and then releases the lock
