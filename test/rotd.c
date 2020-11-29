@@ -25,6 +25,7 @@ void sensor()
 		exit(-1);
 	
 	int degree = 0;
+	printf("start while\n");
 	while (notFinished) {
 		degree = (degree + 30) % 360;
 		syscall(SYSCALL_SET_ROTATION, degree);
@@ -73,6 +74,7 @@ int main()
 	close(STDERR_FILENO);
 
 	/* start daemon function */
+	printf("enter sensor!\n");
 	sensor();
 
 	return 0;

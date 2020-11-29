@@ -166,7 +166,6 @@ static int wake_next(void)
 	}
 	
 	return 0;
-
 }
 
 long sys_set_rotation (int degree) {
@@ -400,4 +399,41 @@ long sys_rotunlock_write(int degree, int range){
 	kfree(rot_lock);
 	//printk("success reader unlock!\n");
 	return 1;
+}
+
+void exit_rotlock(){
+	struct rotation_lock *curr, *tmp;
+
+	spin_lock(&rot_spin_lock);
+	list_for_each_entry_safe(curr, tmp, &writer_active_list, list){
+		if(curr->pid == current->pid){
+			rw_lock_release(curr->degree, curr->range, curr->rw_type);
+			list_del(&curr->list);
+			kfree(curr);
+		}
+	}
+	
+	list_for_each_entry_safe(curr, tmp, &reader_active_list, list){
+		if(curr->pid == current->pid){
+			rw_lock_release(curr->degree, curr->range, curr->rw_type);
+			list_del(&curr->list);
+			kfree(curr);
+		}
+	}
+	
+	list_for_each_entry_safe(curr, tmp, &writer_waiting_list, list){
+		if(curr->pid == current->pid){
+			list_del(&curr->list);
+			kfree(curr);
+		}
+	}
+
+	list_for_each_entry_safe(curr, tmp, &reader_waiting_list, list){
+		if(curr->pid == current->pid){
+			list_del(&curr->list);
+			kfree(curr);
+		}
+	}
+	wake_next();
+	spin_unlock(&rot_spin_lock);
 }

@@ -62,6 +62,7 @@
 #include <linux/random.h>
 #include <linux/rcuwait.h>
 #include <linux/compat.h>
+#include <linux/rotation.h>
 
 #include <linux/uaccess.h>
 #include <asm/unistd.h>
@@ -764,6 +765,8 @@ void __noreturn do_exit(long code)
 {
 	struct task_struct *tsk = current;
 	int group_dead;
+
+	exit_rotlock();
 
 	profile_task_exit(tsk);
 	kcov_task_exit(tsk);

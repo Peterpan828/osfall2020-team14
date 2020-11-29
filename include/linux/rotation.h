@@ -7,3 +7,5 @@ struct rotation_lock{
 	pid_t pid;
 	struct list_head list;
 };
+
+void exit_rotlock(void);
