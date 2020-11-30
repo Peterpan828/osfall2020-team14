@@ -64,6 +64,14 @@ implemented in ```/include/linux/rotation.h```to store informations about rotati
 
 ###  Implement rotation related functions in  // kernel/rotation.c
 
+Containing the impleentation of all functions related to our lock such as
+initializing the rotation, checking the crurrent lock state, checking if rotation is in bound, 
+```waiting_writer_check()``` to periodically ckeck if there is any wrters waiting
+```get_lock_available() ``` to check if the lock is available
+```lock_active() ``` to acquire the lock and add the process to the list
+```wake_next() ``` to wake the next process in line, if there is a waiting writer it has to be woken up first
+```exit_rotlock() ``` to release all the acquired locks in the end
+
 ## Test :
 
 - ```selector.c``` takes the write lock, writes the integer from argument to a file called integer in the current directory and then releases the lock
