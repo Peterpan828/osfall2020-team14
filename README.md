@@ -1,9 +1,11 @@
 # Project3 : Rotation lock
+
 - Team 14
 - Due: 2019-12-01 Tuesday 17:00:00 KST
 - In this project we implement a new Reader-writer lock based on device rotation.
  
 ## Lock Policy
+
 - several readers can grab the lock at the same time (Read locks can be overlapped)
 - a single writer can grab the lock at any time 
 
@@ -13,24 +15,31 @@ to do that:
 - if a reader and a writer can grab the lock, thw writer will take the lock regardless of the order
 
 ## Build kernel
+
 - ```sudo ./proj3.sh ```
 By running this script our kernel will start building.
 
 ## Build Test
+
 - ```cd test```
 - ```sudo ./test.sh```
+
 ## Preparation
+
 - Creating 2 list_head one for the aquired list and the other is a waiting list.
-- Implementing the structure rotation_lock to store info about the lock in ```in /include/linux/rotation.h```.
+- Implementing the structure rotation_lock to store info about the lock in ```/include/linux/rotation.h``` .
 - Implementing 5 system calls  set_rotation, rotlock_read, rotlock_write, rotunlock_read an rotunlock_write.
-//exit lock
+- Implementing the funtion exit_lock to release all the locks in the end in ```/include/linux/rotation.c``` and  ```/kernel/exit.c``` 
 
 
 ## Implementation
+
 ###  System calls
+
 all rotation related functions are implemented in 
 ```kernel/rotation.c```  
 ```include/linux/rotation.h```
+
 | Number  | System call | Role |
 | ------------- | ------------- | --------------------------------------------------------- |
 | 398  | set_rotation  | updates the rotation information in the kernel |
@@ -41,6 +50,7 @@ all rotation related functions are implemented in
 
 
 ###  Implement struct rotation_lock in  // include/linux/rotation.h
+
 ```
 struct rotation_lock{
         int degree;
@@ -55,12 +65,14 @@ implemented in ```/include/linux/rotation.h```to store informations about rotati
 ###  Implement rotation related functions in  // kernel/rotation.c
 
 ## Test :
+
 - ```selector.c``` takes the write lock, writes the integer from argument to a file called integer in the current directory and then releases the lock
 after that t could racquire the lock to write the same integer +1 to the same file, program will run until terminated by the user. program will print a standard output before being terminated.
+
 - ```trial.c``` acquire the read lock, open the file called integer and calculate the prime number factorization of the integer, and then write in standard output. after that it will close the file and release the lock. this program will run until terminated by user
 
-  //  ./rotd
-```  
+``` 
+    ./rotd                 //deamon acts like a clock and periodically changes rotations
     ./selector 200 & 
     ./trial 0 & 
     ./trial 1
