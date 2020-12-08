@@ -60,3 +60,5 @@ static int ext2_get_gps_location(struct inode *inode, struct gps_location *gps){
 
 
 ## Download and unpack the e2fsprogs-1.45.6
+
+## Add test file 'gpsupdate' that call syscall set_gps_location
