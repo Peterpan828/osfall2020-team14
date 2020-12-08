@@ -1,6 +1,6 @@
 ##include/linux/gps.h declare struct and variable
 
-'''
+```
 struct gps_location{
         int lat_integer;
         int lat_fractional;
@@ -12,7 +12,7 @@ struct gps_location{
 extern struct gps_location curr_gps_location; // this is the variable representing current location
 
 extern spinlock_t gps_spinlock;
-'''
+```
 
 ##in fs/ext2/file.c create functions and mapping to ext2_file_inode_operation 
 
