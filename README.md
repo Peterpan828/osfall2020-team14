@@ -1,4 +1,4 @@
-##include/linux/gps.h declare struct and variable
+## include/linux/gps.h declare struct and variable
 
 ```
 struct gps_location{
@@ -14,8 +14,8 @@ extern struct gps_location curr_gps_location; // this is the variable representi
 extern spinlock_t gps_spinlock;
 ```
 
-##in fs/ext2/file.c create functions and mapping to ext2_file_inode_operation 
-
+## in fs/ext2/file.c create functions and mapping to ext2_file_inode_operation 
+```
 static int ext2_set_gps_location(struct inode *inode){
         printk("Here is ext2 set_gps_location\n");
         struct ext2_inode_info *ei;
@@ -47,16 +47,16 @@ static int ext2_get_gps_location(struct inode *inode, struct gps_location *gps){
         spin_unlock(&gps_spinlock);
         return 0;
 }
+```
+## Add variables for gps to struct ext2_inode and struct ext2_inode_info in fs/ext2/ext2.h
 
-##Add variables for gps to struct ext2_inode and struct ext2_inode_info in fs/ext2/ext2.h
+## Add compatible macro for gps variables to ext2_iget function and ext2_write_inode in fs/ext2/inode.c
 
-##Add compatible macro for gps variables to ext2_iget function and ext2_write_inode in fs/ext2/inode.c
-
-##Add set_gps_location function call to 
+## Add set_gps_location function call to 
  - ext2_create() in fs/ext2/namei.c
  - ext2_write_end() and ext2_setsize() in fs/ext2/inode.c 
  - ext2_new_inode() in fs/ext2/ialloc.c 
  - notify_change() in fs/attr.c
 
 
-##Download and unpack the e2fsprogs-1.45.6
+## Download and unpack the e2fsprogs-1.45.6
