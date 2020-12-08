@@ -25,6 +25,7 @@
 #include <linux/quotaops.h>
 #include <linux/iomap.h>
 #include <linux/uio.h>
+
 #include "ext2.h"
 #include "xattr.h"
 #include "acl.h"
@@ -179,6 +180,44 @@ static ssize_t ext2_file_write_iter(struct kiocb *iocb, struct iov_iter *from)
 	return generic_file_write_iter(iocb, from);
 }
 
+//location setting functions
+static int ext2_set_gps_location(struct inode *inode){
+
+	printk("Here is ext2 set_gps_location\n");
+	struct ext2_inode_info *ei;
+
+	if(inode == NULL)
+		return -EINVAL;
+	
+	ei = EXT2_I(inode);
+
+	spin_lock(&gps_spinlock);
+	ei->i_lat_integer = curr_gps_location.lat_integer;
+	ei->i_lat_fractional = curr_gps_location.lat_fractional;
+	ei->i_lng_integer = curr_gps_location.lng_integer;
+	ei->i_lng_fractional = curr_gps_location.lng_fractional;
+	ei->i_accuracy = curr_gps_location.accuracy;
+	spin_unlock(&gps_spinlock);
+	return 0;
+}
+
+static int ext2_get_gps_location(struct inode *inode, struct gps_location *gps){
+	printk("here is get gps location\n");	
+	struct ext2_inode_info *ei;
+	if(inode == NULL || gps == NULL) 
+		return -EINVAL;
+
+	ei = EXT2_I(inode);
+	spin_lock(&gps_spinlock);
+	gps->lat_integer = ei->i_lat_integer;
+	gps->lat_fractional = ei->i_lat_fractional;
+	gps->lng_integer = ei->i_lng_integer;
+	gps->lng_fractional = ei->i_lng_fractional;
+	gps->accuracy = ei->i_accuracy;
+	spin_unlock(&gps_spinlock);
+	return 0;
+}
+
 const struct file_operations ext2_file_operations = {
 	.llseek		= generic_file_llseek,
 	.read_iter	= ext2_file_read_iter,
@@ -204,4 +243,6 @@ const struct inode_operations ext2_file_inode_operations = {
 	.get_acl	= ext2_get_acl,
 	.set_acl	= ext2_set_acl,
 	.fiemap		= ext2_fiemap,
+	.set_gps_location = ext2_set_gps_location,
+	.get_gps_location = ext2_get_gps_location,
 };

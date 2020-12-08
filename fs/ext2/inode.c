@@ -902,6 +902,12 @@ static int ext2_write_end(struct file *file, struct address_space *mapping,
 	ret = generic_write_end(file, mapping, pos, len, copied, page, fsdata);
 	if (ret < len)
 		ext2_write_failed(mapping, pos + len);
+	else{ //gps
+		struct inode *inode = file_inode(file);
+		if(inode && inode->i_op && inode->i_op->set_gps_location)
+			inode->i_op->set_gps_location(inode);
+		printk("here is write end\n");
+	}
 	return ret;
 }
 
@@ -1312,6 +1318,10 @@ static int ext2_setsize(struct inode *inode, loff_t newsize)
 		mark_inode_dirty(inode);
 	}
 
+	if(inode->i_op->set_gps_location){
+		inode->i_op->set_gps_location(inode);
+	}
+
 	return 0;
 }
 
@@ -1462,6 +1472,15 @@ struct inode *ext2_iget (struct super_block *sb, unsigned long ino)
 	ei->i_block_group = (ino - 1) / EXT2_INODES_PER_GROUP(inode->i_sb);
 	ei->i_dir_start_lookup = 0;
 
+	//gps variable transform
+	ei->i_lat_integer = le32_to_cpu(raw_inode->i_lat_integer);
+	ei->i_lat_fractional = le32_to_cpu(raw_inode->i_lat_fractional);
+	ei->i_lng_integer = le32_to_cpu(raw_inode->i_lng_integer);
+	ei->i_lng_fractional = le32_to_cpu(raw_inode->i_lng_fractional);
+	ei->i_accuracy = le32_to_cpu(raw_inode->i_accuracy);
+
+
+
 	/*
 	 * NOTE! The in-memory inode i_data array is in little-endian order
 	 * even on big-endian machines: we do NOT byteswap the block numbers!
@@ -1564,6 +1583,13 @@ static int __ext2_write_inode(struct inode *inode, int do_sync)
 	raw_inode->i_atime = cpu_to_le32(inode->i_atime.tv_sec);
 	raw_inode->i_ctime = cpu_to_le32(inode->i_ctime.tv_sec);
 	raw_inode->i_mtime = cpu_to_le32(inode->i_mtime.tv_sec);
+
+	//gps variable transform
+	raw_inode->i_lat_integer = cpu_to_le32(ei->i_lat_integer);
+	raw_inode->i_lat_fractional = cpu_to_le32(ei->i_lat_fractional);
+	raw_inode->i_lng_integer = cpu_to_le32(ei->i_lng_integer);
+	raw_inode->i_lng_fractional = cpu_to_le32(ei->i_lng_fractional);
+	raw_inode->i_accuracy = cpu_to_le32(ei->i_accuracy);
 
 	raw_inode->i_blocks = cpu_to_le32(inode->i_blocks);
 	raw_inode->i_dtime = cpu_to_le32(ei->i_dtime);
