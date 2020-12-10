@@ -63,8 +63,7 @@ static int ext2_get_gps_location(struct inode *inode, struct gps_location *gps){
 
 ## Add test file 'gpsupdate' that call syscall set_gps_location
 
-
-## Implement syscall get_gps_location
+## syscall get_gps_location
 
 ## Modified e2fsprogs
 
@@ -83,6 +82,7 @@ static int ext2_get_gps_location(struct inode *inode, struct gps_location *gps){
 - ./file_loc /root/proj4/testfile
 
 
-## ToDo : kernel/gps.c -> gps_check
+## ToDo : kernel/gps.c -> gps_check (Compare two gps_location)
 - Inserted in fs/namei.c -> generic_permission
 - Should Implement Float Operation
+- Test More Situation..
