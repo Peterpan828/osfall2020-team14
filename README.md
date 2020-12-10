@@ -62,3 +62,27 @@ static int ext2_get_gps_location(struct inode *inode, struct gps_location *gps){
 ## Download and unpack the e2fsprogs-1.45.6
 
 ## Add test file 'gpsupdate' that call syscall set_gps_location
+
+
+## Implement syscall get_gps_location
+
+## Modified e2fsprogs
+
+## Setting & Test
+- cd e2fsprogs
+- ./configure
+- make
+- dd if=/dev/zero of=proj4.fs bs=1M count=1
+- sudo losetup /dev/loop0 proj4.fs
+- sudo ./e2fsprogs/misc/mke2fs -I 256 -L os.proj4 /dev/loop0
+- sudo losetup -d /dev/loop0
+- mv (proj4.fs) file to (/root)
+- mount -o loop -t ext2 /root/proj4.fs /root/proj4
+- ./writetest
+- ./gpsupdate 37.451049 126.950719 30
+- ./file_loc /root/proj4/testfile
+
+
+## ToDo : kernel/gps.c -> gps_check
+- Inserted in fs/namei.c -> generic_permission
+- Should Implement Float Operation
