@@ -76,6 +76,7 @@ static int ext2_get_gps_location(struct inode *inode, struct gps_location *gps){
 - sudo ./e2fsprogs/misc/mke2fs -I 256 -L os.proj4 /dev/loop0
 - sudo losetup -d /dev/loop0
 - mv (proj4.fs) file to (/root)
+- run qemu
 - mount -o loop -t ext2 /root/proj4.fs /root/proj4
 - ./writetest
 - ./gpsupdate 37.451049 126.950719 30
