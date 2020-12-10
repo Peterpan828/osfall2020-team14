@@ -183,8 +183,9 @@ static ssize_t ext2_file_write_iter(struct kiocb *iocb, struct iov_iter *from)
 //location setting functions
 static int ext2_set_gps_location(struct inode *inode){
 
-	printk("Here is ext2 set_gps_location\n");
 	struct ext2_inode_info *ei;
+
+	printk("Here is ext2 set_gps_location\n");
 
 	if(inode == NULL)
 		return -EINVAL;
@@ -202,8 +203,11 @@ static int ext2_set_gps_location(struct inode *inode){
 }
 
 static int ext2_get_gps_location(struct inode *inode, struct gps_location *gps){
-	printk("here is get gps location\n");	
+	
 	struct ext2_inode_info *ei;
+
+	printk("here is get gps location\n");	
+	
 	if(inode == NULL || gps == NULL) 
 		return -EINVAL;
 

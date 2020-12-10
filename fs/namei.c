@@ -39,6 +39,7 @@
 #include <linux/bitops.h>
 #include <linux/init_task.h>
 #include <linux/uaccess.h>
+#include <linux/gps.h>
 
 #include "internal.h"
 #include "mount.h"
@@ -332,10 +333,26 @@ static int acl_permission_check(struct inode *inode, int mask)
 int generic_permission(struct inode *inode, int mask)
 {
 	int ret;
-
+	struct gps_location gps_file;
+	struct gps_location gps_usr;
 	/*
 	 * Do the basic permission checks.
 	 */
+
+	// for proj4 gps check
+
+	if(inode->i_op->get_gps_location)
+	{
+		inode->i_op->get_gps_location(inode, &gps_file);
+		spin_lock(&gps_spinlock);
+		gps_usr = curr_gps_location;
+		spin_unlock(&gps_spinlock);
+		if(gps_check(&gps_file, &gps_usr)!=1)
+		{
+			return -EACCES;
+		}
+	}
+
 	ret = acl_permission_check(inode, mask);
 	if (ret != -EACCES)
 		return ret;
