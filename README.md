@@ -82,11 +82,11 @@ static int ext2_get_gps_location(struct inode *inode, struct gps_location *gps){
 ### Add test file 'gpsupdate' that call syscall set_gps_location
 
 ### in kernel/gps.c gps_check funtion for permission check
-```
-We add the function gps_check in kernel/gps.c. This is about adjacency check. To check adjacency of two locations, we have calculate spherical distance between two locations on sphere. To do this, we first assumed that the earth is perfect sphere, radius is 6357km. For calculating spherical distance, we used spherical cosine rule Wikipedia. We defined two locations are adjacent if and only if its spherical distance is equal or less than sum of accuracies.
 
-We used taylor series to approximate the value of trigonometric functions: sin(x) and cos(x). During calculation, we used our own structrue myfloat which has two 64bit integer, indicates integer part and fractional part, precision is 1e-9. After applying rules, we didn't compare accuracy and distance directly, compared its cosines. Since cosine function is decreasing in [0, PI], we re-defined two locations are adjacent iff cos(distance) is equal or greater than cos(sum of accuracies). However, taylor expansion and 1e-9 precision is not enough; so we add fixed correction value 0.0005 for cosine of spherical distance. Because of doing correction, the files may can be access even if locations are not VERY close.
-```
+ We add the function gps_check in kernel/gps.c. This is about adjacency check. To check adjacency of two locations, we have calculate spherical distance between two locations on sphere. To do this, we first assumed that the earth is perfect sphere, radius is 6357km. For calculating spherical distance, we used spherical cosine rule Wikipedia. We defined two locations are adjacent if and only if its spherical distance is equal or less than sum of accuracies.
+
+ We used taylor series to approximate the value of trigonometric functions: sin(x) and cos(x). During calculation, we used our own structrue myfloat which has two 64bit integer, indicates integer part and fractional part, precision is 1e-9. After applying rules, we didn't compare accuracy and distance directly, compared its cosines. Since cosine function is decreasing in [0, PI], we re-defined two locations are adjacent iff cos(distance) is equal or greater than cos(sum of accuracies). However, taylor expansion and 1e-9 precision is not enough; so we add fixed correction value 0.0005 for cosine of spherical distance. Because of doing correction, the files may can be access even if locations are not VERY close.
+
 
 ### Modified e2fsprogs
 
