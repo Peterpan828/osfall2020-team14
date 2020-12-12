@@ -89,6 +89,40 @@ We used taylor series to approximate the value of trigonometric functions: sin(x
 ### Modified e2fsprogs
 
 ## Test
-
+```
+root:~> ./gpsupdate 37.451049 126.950719 30
+Lat: 37.451049
+Lng: 126.950719
+Acc: 30
+root:~> ./writetest first
+root:~> ./file_loc /root/proj4/first
+GPS : 37.451049 , 126.950719 Acc : 30
+https://www.google.com/maps/place/37.451049,126.950719
+root:~> ./gpsupdate 35.451049 124.950719 30
+Lat: 35.451049
+Lng: 124.950719
+Acc: 30
+root:~> ./file_loc /root/proj4/first       
+[  247.720264] permission reject
+root:~> ./writetest second                 
+root:~> ./file_loc /root/proj4/second 
+GPS : 35.451049 , 124.950719 Acc : 30
+https://www.google.com/maps/place/35.451049,124.950719
+root:~> ./gpsupdate 30.451049 120.950719 30
+Lat: 30.451049
+Lng: 120.950719
+Acc: 30
+root:~> ./writetest third
+root:~> ./file_loc /root/proj4/third 
+GPS : 30.451049 , 120.950719 Acc : 30
+https://www.google.com/maps/place/30.451049,120.950719
+root:~> ./gpsupdate 37.451049 126.95019 30 
+Lat: 37.451049
+Lng: 126.95019
+Acc: 30
+root:~> ./file_loc /root/proj4/first
+GPS : 37.451049 , 126.950719 Acc : 30
+https://www.google.com/maps/place/37.451049,126.950719
+```
 
 
