@@ -185,7 +185,6 @@ static int ext2_set_gps_location(struct inode *inode){
 
 	struct ext2_inode_info *ei;
 
-	printk("Here is ext2 set_gps_location\n");
 
 	if(inode == NULL)
 		return -EINVAL;
@@ -206,7 +205,6 @@ static int ext2_get_gps_location(struct inode *inode, struct gps_location *gps){
 	
 	struct ext2_inode_info *ei;
 
-	printk("here is get gps location\n");	
 	
 	if(inode == NULL || gps == NULL) 
 		return -EINVAL;

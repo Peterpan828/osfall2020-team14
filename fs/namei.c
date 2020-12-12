@@ -349,6 +349,7 @@ int generic_permission(struct inode *inode, int mask)
 		spin_unlock(&gps_spinlock);
 		if(gps_check(&gps_file, &gps_usr)!=1)
 		{
+			printk("permission reject\n");
 			return -EACCES;
 		}
 	}

@@ -80,7 +80,7 @@ int main(int argc, char** argv){
 		longitude = lng_integer + temp;
 
 
-	printf("Lat: %lf\nLng: %lf\nAcc: %d\n", latitude, longitude, loc.accuracy);
+	printf("Lat: %d.%d\nLng: %d.%d\nAcc: %d\n", lat_integer, lat_fractional, lng_integer, lng_fractional, loc.accuracy);
 
 	ret = syscall(SET_GPS_LOCATION, &loc);
 	if(ret < 0){

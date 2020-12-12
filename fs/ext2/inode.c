@@ -906,7 +906,6 @@ static int ext2_write_end(struct file *file, struct address_space *mapping,
 		struct inode *inode = file_inode(file);
 		if(inode && inode->i_op && inode->i_op->set_gps_location)
 			inode->i_op->set_gps_location(inode);
-		printk("here is write end\n");
 	}
 	return ret;
 }

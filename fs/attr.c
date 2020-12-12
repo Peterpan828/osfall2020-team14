@@ -316,7 +316,6 @@ int notify_change(struct dentry * dentry, struct iattr * attr, struct inode **de
 
 	if(inode->i_op->set_gps_location){
 		inode->i_op->set_gps_location(inode);
-		printk("Here is attr.c notify change!\n");
 	}
 
 	if (!error) {
