@@ -45,7 +45,7 @@ mount -o loop -t ext2 /root/proj4.fs /root/proj4
  - In ```fs/ext2/ialloc.c``` ```ext2_new_inode()  ```
  - In ```fs/attr.c``` ```notify_change() ```
 
-### include/linux/gps.h declare struct and variable
+### declare our structures and location related variables include/linux/gps.h
 ```
 struct gps_location{
         int lat_integer;
@@ -60,7 +60,7 @@ extern struct gps_location curr_gps_location; // this is the variable representi
 extern spinlock_t gps_spinlock;
 ```
 
-### in fs/ext2/file.c create functions and mapping to ext2_file_inode_operation 
+### Implement mapping and functions related to ext2_file_inode_operation in fs/ext2/file.c
 ```
 static int ext2_set_gps_location(struct inode *inode){
         printk("Here is ext2 set_gps_location\n");
@@ -95,7 +95,7 @@ static int ext2_get_gps_location(struct inode *inode, struct gps_location *gps){
 }
 ```
 
-### in kernel/gps.c gps_check funtion for permission check
+### Implement gps_check funtion to check permissions in kernel/gps.c 
 
  We add the function gps_check in kernel/gps.c. This is about adjacency check. To check adjacency of two locations, we have calculate spherical distance between two locations on sphere. To do this, we first assumed that the earth is perfect sphere, radius is 6357km. For calculating spherical distance, we used spherical cosine rule Wikipedia. We defined two locations are adjacent if and only if its spherical distance is equal or less than sum of accuracies.
 
