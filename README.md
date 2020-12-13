@@ -36,8 +36,16 @@ mount -o loop -t ext2 /root/proj4.fs /root/proj4
 
 ## Implementation
 
-### include/linux/gps.h declare struct and variable
+### SystemCalls
+- ```set_gps_location``` & ```get_gps_location``` and they function literally however they are called
 
+### Make a call to set_gps_location in
+ - In ```fs/ext2/namei.c``` ```ext2_create()``` 
+ - In ```fs/ext2/inode.c``` ```ext2_write_end() and ext2_setsize()  ```
+ - In ```fs/ext2/ialloc.c``` ```ext2_new_inode()  ```
+ - In ```fs/attr.c``` ```notify_change() ```
+
+### include/linux/gps.h declare struct and variable
 ```
 struct gps_location{
         int lat_integer;
@@ -86,15 +94,6 @@ static int ext2_get_gps_location(struct inode *inode, struct gps_location *gps){
         return 0;
 }
 ```
-
-### Add set_gps_location function call to 
- - ext2_create() in fs/ext2/namei.c
- - ext2_write_end() and ext2_setsize() in fs/ext2/inode.c 
- - ext2_new_inode() in fs/ext2/ialloc.c 
- - notify_change() in fs/attr.c
-
-### syscall set_gps_location and get_gps_location
-
 
 ### in kernel/gps.c gps_check funtion for permission check
 
